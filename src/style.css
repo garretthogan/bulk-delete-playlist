@@ -80,7 +80,7 @@ h2 {
 code,
 pre {
   border: 1px solid var(--border);
-  border-radius: 0.55rem;
+  border-radius: 0;
   background: #090f0d;
   color: var(--text);
   font-family: var(--mono);
@@ -117,7 +117,7 @@ pre {
 
 .panel {
   border: 1px solid var(--border);
-  border-radius: 28px;
+  border-radius: 0;
   background: rgba(18, 26, 24, 0.88);
   box-shadow: var(--shadow);
   backdrop-filter: blur(16px);
@@ -170,7 +170,7 @@ pre {
 .button {
   min-height: 2.75rem;
   border: 0;
-  border-radius: 999px;
+  border-radius: 0;
   padding: 0.75rem 1.1rem;
   font-weight: 800;
   transition:
@@ -222,7 +222,7 @@ input:focus-visible,
 
 .alert {
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 0;
   padding: 0.9rem 1rem;
   margin-bottom: 1rem;
 }
@@ -250,7 +250,7 @@ input:focus-visible,
   flex-wrap: wrap;
   justify-content: space-between;
   border-bottom: 1px solid var(--border);
-  border-radius: 28px 28px 0 0;
+  border-radius: 0;
   padding: 1rem;
   background: rgba(18, 26, 24, 0.96);
 }
@@ -283,7 +283,7 @@ input:focus-visible,
   display: grid;
   gap: 1px;
   overflow: hidden;
-  border-radius: 0 0 28px 28px;
+  border-radius: 0;
 }
 
 .playlist-card {
@@ -305,7 +305,7 @@ input:focus-visible,
   width: 64px;
   height: 64px;
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: 0;
   background: #26342f;
   color: var(--primary);
   font-size: 1.5rem;
@@ -336,7 +336,7 @@ input:focus-visible,
 
 .spotify-link {
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 0;
   padding: 0.45rem 0.75rem;
   color: var(--muted);
   font-size: 0.9rem;
@@ -381,7 +381,7 @@ input:focus-visible,
   gap: 0.75rem;
   justify-content: space-between;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 0;
   padding: 0.75rem 0.9rem;
 }
 
