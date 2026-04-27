@@ -282,7 +282,9 @@ input:focus-visible,
 .playlist-list {
   display: grid;
   gap: 1px;
-  overflow: hidden;
+  max-height: min(62svh, 680px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border-radius: 0;
 }
 
@@ -371,6 +373,9 @@ input:focus-visible,
 .results-list {
   display: grid;
   gap: 0.65rem;
+  max-height: min(34svh, 360px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 0;
   margin: 1rem 0 0;
   list-style: none;

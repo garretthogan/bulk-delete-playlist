@@ -2,6 +2,7 @@ import './style.css'
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID
 const REDIRECT_URI = `${window.location.origin}${window.location.pathname}`
+const IS_LOCAL_DEV = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
 const SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize'
 const SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token'
 const SPOTIFY_API_URL = 'https://api.spotify.com/v1'
@@ -18,9 +19,53 @@ const STORAGE_KEYS = {
   token: 'spotify_bulk_delete_token',
 }
 
+const MOCK_PROFILE = {
+  id: 'local-dev-user',
+  display_name: 'Local Dev User',
+}
+
+const MOCK_PLAYLISTS = [
+  {
+    id: 'mock-road-trip',
+    name: 'Road Trip Cleanup',
+    public: false,
+    owner: { id: MOCK_PROFILE.id },
+    tracks: { total: 84 },
+    images: [],
+    external_urls: { spotify: 'https://open.spotify.com/' },
+  },
+  {
+    id: 'mock-gym',
+    name: 'Old Gym Mix',
+    public: true,
+    owner: { id: MOCK_PROFILE.id },
+    tracks: { total: 37 },
+    images: [],
+    external_urls: { spotify: 'https://open.spotify.com/' },
+  },
+  {
+    id: 'mock-party',
+    name: 'Party Playlist 2018',
+    public: false,
+    owner: { id: MOCK_PROFILE.id },
+    tracks: { total: 112 },
+    images: [],
+    external_urls: { spotify: 'https://open.spotify.com/' },
+  },
+  {
+    id: 'mock-focus',
+    name: 'Focus Drafts',
+    public: false,
+    owner: { id: MOCK_PROFILE.id },
+    tracks: { total: 19 },
+    images: [],
+    external_urls: { spotify: 'https://open.spotify.com/' },
+  },
+]
+
 const app = document.querySelector('#app')
 const state = {
-  token: readToken(),
+  token: IS_LOCAL_DEV ? createMockToken() : readToken(),
   profile: null,
   playlists: [],
   selectedPlaylistIds: new Set(),
@@ -41,13 +86,13 @@ function escapeHtml(value) {
 }
 
 function render() {
-  if (!CLIENT_ID) {
+  if (!CLIENT_ID && !IS_LOCAL_DEV) {
     app.innerHTML = renderMissingConfig()
     bindEvents()
     return
   }
 
-  if (!state.token) {
+  if (!state.token && !IS_LOCAL_DEV) {
     app.innerHTML = renderSignedOut()
     bindEvents()
     return
@@ -112,7 +157,7 @@ function renderSignedIn() {
           <h1>Your personal playlists</h1>
           <p class="muted">
             Signed in${state.profile ? ` as ${escapeHtml(state.profile.display_name || state.profile.id)}` : ''}.
-            Only playlists owned by your account are shown.
+            ${IS_LOCAL_DEV ? 'Using local mock data.' : 'Only playlists owned by your account are shown.'}
           </p>
         </div>
         <div class="header-actions">
@@ -276,6 +321,11 @@ async function handleAction(event) {
 }
 
 async function signIn() {
+  if (IS_LOCAL_DEV) {
+    loadMockData('Loaded local mock Spotify data.')
+    return
+  }
+
   state.errorMessage = ''
   const verifier = generateCodeVerifier()
   const challenge = await generateCodeChallenge(verifier)
@@ -298,6 +348,13 @@ async function signIn() {
 }
 
 function signOut(message = 'Signed out.') {
+  if (IS_LOCAL_DEV) {
+    state.selectedPlaylistIds.clear()
+    state.deleteResults = []
+    loadMockData('Reset local mock Spotify data.')
+    return
+  }
+
   localStorage.removeItem(STORAGE_KEYS.token)
   sessionStorage.removeItem(STORAGE_KEYS.authState)
   sessionStorage.removeItem(STORAGE_KEYS.codeVerifier)
@@ -364,7 +421,11 @@ async function deleteSelectedPlaylists() {
 
   for (const playlist of selectedPlaylists) {
     try {
-      await spotifyFetch(`/playlists/${playlist.id}/followers`, { method: 'DELETE' })
+      if (IS_LOCAL_DEV) {
+        await wait(150)
+      } else {
+        await spotifyFetch(`/playlists/${playlist.id}/followers`, { method: 'DELETE' })
+      }
       results.push({ id: playlist.id, name: playlist.name, ok: true })
       state.selectedPlaylistIds.delete(playlist.id)
     } catch (error) {
@@ -394,6 +455,11 @@ async function deleteSelectedPlaylists() {
 
 async function init() {
   render()
+
+  if (IS_LOCAL_DEV) {
+    loadMockData('Loaded local mock Spotify data.')
+    return
+  }
 
   if (!CLIENT_ID) {
     return
@@ -506,6 +572,11 @@ async function requestToken(body) {
 }
 
 async function loadSpotifyData() {
+  if (IS_LOCAL_DEV) {
+    loadMockData('Refreshed local mock Spotify data.')
+    return
+  }
+
   state.isLoading = true
   state.errorMessage = ''
   state.deleteResults = []
@@ -533,6 +604,23 @@ async function loadSpotifyData() {
     state.isLoading = false
     render()
   }
+}
+
+function loadMockData(message) {
+  state.token = createMockToken()
+  state.profile = MOCK_PROFILE
+  state.playlists = MOCK_PLAYLISTS.map((playlist) => ({ ...playlist }))
+  state.selectedPlaylistIds = new Set(
+    [...state.selectedPlaylistIds].filter((id) =>
+      state.playlists.some((playlist) => playlist.id === id),
+    ),
+  )
+  state.deleteResults = []
+  state.isLoading = false
+  state.isDeleting = false
+  state.errorMessage = ''
+  state.statusMessage = message
+  render()
 }
 
 async function getAllPlaylists() {
@@ -590,6 +678,19 @@ function readToken() {
   } catch {
     return null
   }
+}
+
+function createMockToken() {
+  return {
+    access_token: 'local-dev-mock-token',
+    expires_at: Number.POSITIVE_INFINITY,
+  }
+}
+
+function wait(milliseconds) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, milliseconds)
+  })
 }
 
 function saveToken(token) {
