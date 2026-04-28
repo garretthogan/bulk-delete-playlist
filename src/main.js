@@ -342,6 +342,7 @@ async function signIn() {
     state: authState,
     code_challenge_method: 'S256',
     code_challenge: challenge,
+    show_dialog: 'true',
   })
 
   window.location.assign(`${SPOTIFY_AUTH_URL}?${params}`)
